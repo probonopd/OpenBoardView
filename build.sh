@@ -39,8 +39,15 @@ if [ "$1" = "--help" ]; then
 fi
 STRCOMPILE="$(color 2 Compiling)"
 COMPILEDIR="release_build"
-COMPILEFLAGS="-DCMAKE_INSTALL_PREFIX="
-export DESTDIR="$(cd "$(dirname "$0")" && pwd)"
+if [ "$DEPLOY_APPIMAGE" == "yes" ] ; then
+  COMPILEFLAGS="-DCMAKE_INSTALL_PREFIX=/usr"
+  export DESTDIR="$(cd "$(dirname "$0")" && pwd)/appdir"
+  mkdir -p "$DESTDIR" && readlink -f "$DESTFIR"
+else
+  COMPILEFLAGS="-DCMAKE_INSTALL_PREFIX="
+  export DESTDIR="$(cd "$(dirname "$0")" && pwd)"
+fi
+
 BUILDTYPE="$(color 6 release)"
 SCRIPT_ARGC=1 # number of arguments eaten by this script
 if [ "$ARG_LENGTH" -gt 0 -a "$1" = "--debug" -o "$2" = "--debug" ]; then
@@ -84,6 +91,15 @@ if `echo "$COMPILEFLAGS" | grep -q "DEBUG"`; then
 else
   make -j$THREADS install/strip
   [ "$?" != "0" ] && color 1 "MAKE INSTALL/STRIP FAILED" && exit 1
+fi
+
+if [ "$DEPLOY_APPIMAGE" == "yes" ] ; then
+  find "$DESTDIR"
+  wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+  chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+  ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage
+  wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  bash upload.sh Open*.AppImage*
 fi
 
 case "$(uname -s)" in
