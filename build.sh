@@ -100,22 +100,21 @@ if [ "$DEPLOY_APPIMAGE" == "yes" ] ; then
   ./linuxdeployqt-continuous-x86_64.AppImage "$DESTDIR"/usr/share/applications/*.desktop -appimage
   wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
   bash upload.sh Open*.AppImage*
+else
+  case "$(uname -s)" in
+    *Darwin*)
+      # Generate DMG
+      make package
+      [ "$?" != "0" ] && color 1 "MAKE PACKAGE FAILED" && exit 1
+      ;;
+    *)
+      # Give right execution permissions to executables
+      cd $LASTDIR
+      cd bin
+      for i in openboardview; do chmod +x $i; done
+      ;;
+  esac
 fi
-
-case "$(uname -s)" in
-  *Darwin*)
-    # Generate DMG
-    make package
-    [ "$?" != "0" ] && color 1 "MAKE PACKAGE FAILED" && exit 1
-    ;;
-  *)
-    # Give right execution permissions to executables
-    cd $LASTDIR
-    cd bin
-    for i in openboardview; do chmod +x $i; done
-
-    ;;
-esac
 
 cd $LASTDIR
 exit 0
