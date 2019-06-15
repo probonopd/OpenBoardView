@@ -15,7 +15,7 @@ matrix:
   - os: linux
     compiler: gcc
     env: DEPLOY=yes DEPLOY_APPIMAGE=yes
-- os: osx
+  - os: osx
     compiler: clang
     env: DEPLOY=yes
   - os: linux
